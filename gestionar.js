@@ -1,5 +1,7 @@
 (() => {
   const config = window.supabaseConfig || {};
+  const recoveryRequested = new URLSearchParams(window.location.search).get("recovery") === "1"
+    || new URLSearchParams(window.location.hash.slice(1)).get("type") === "recovery";
   const loginPanel = document.querySelector("#login-panel");
   const adminPanel = document.querySelector("#admin-panel");
   const resetPanel = document.querySelector("#password-reset-panel");
@@ -255,6 +257,7 @@
     if (error) return status(resetStatus, `No se pudo cambiar: ${error.message}`, "error");
     status(resetStatus, "Contraseña actualizada. Ya puedes entrar al panel.", "success");
     loginPassword.value = "";
+    window.history.replaceState({}, document.title, window.location.pathname);
     window.setTimeout(() => showAdmin(config.adminEmail), 1000);
   });
   document.querySelector("#logout-button").addEventListener("click", async () => { await client.auth.signOut(); showLogin(); });
@@ -302,11 +305,14 @@
   }
   client = window.supabase.createClient(config.url, config.publishableKey);
   client.auth.getSession().then(({ data }) => {
-    if (data.session?.user?.email?.toLowerCase() === String(config.adminEmail).toLowerCase()) showAdmin(data.session.user.email);
+    if (data.session?.user?.email?.toLowerCase() === String(config.adminEmail).toLowerCase()) {
+      if (recoveryRequested) showRecovery();
+      else showAdmin(data.session.user.email);
+    }
     else if (data.session) client.auth.signOut();
   });
   client.auth.onAuthStateChange((event, session) => {
-    if (event === "PASSWORD_RECOVERY") showRecovery();
+    if (event === "PASSWORD_RECOVERY" || (recoveryRequested && session)) showRecovery();
     else if (!session) showLogin();
   });
 })();
