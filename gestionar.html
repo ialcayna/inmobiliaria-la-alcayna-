@@ -4,86 +4,72 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#f7f6f1" />
-    <title>Gestor de propiedades | Inmobiliaria La Alcayna</title>
+    <title>Acceso de gestión | Inmobiliaria La Alcayna</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="gestionar.css" />
-    <script src="datos.js" defer></script>
+    <link rel="stylesheet" href="auth-panel.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js" defer></script>
     <script src="gestionar.js" defer></script>
   </head>
   <body>
     <header class="manager-header">
-      <a class="manager-brand" href="index.html"><span class="brand-mark">A</span><span><strong>Inmobiliaria La Alcayna</strong><small>GESTIÓN DE PROPIEDADES</small></span></a>
+      <a class="manager-brand" href="index.html"><span class="brand-mark">A</span><span><strong>Inmobiliaria La Alcayna</strong><small>GESTIÓN PRIVADA</small></span></a>
       <a class="back-link" href="index.html">← Volver a la web</a>
     </header>
-
     <main class="manager-main">
-      <section class="manager-intro">
-        <div><p class="eyebrow"><span></span> Panel de gestión</p><h1>Gestiona tus <em>propiedades.</em></h1><p>Añade una ficha con sus fotos, ubicación y características. No hace falta escribir código.</p></div>
-        <div class="intro-mark" aria-hidden="true">⌂</div>
+      <section class="manager-intro"><div><p class="eyebrow"><span></span> Panel privado</p><h1>Gestiona tus <em>propiedades.</em></h1><p>Accede con tu cuenta para publicar, editar y retirar fichas desde la web.</p></div><div class="intro-mark" aria-hidden="true">⌂</div></section>
+
+      <section class="login-panel" id="login-panel">
+        <p class="eyebrow"><span></span> Acceso de la inmobiliaria</p>
+        <h2>Iniciar sesión</h2>
+        <form id="login-form" class="login-form">
+          <label>Correo / usuario<input id="login-email" type="email" autocomplete="username" required /></label>
+          <label>Contraseña<input id="login-password" type="password" autocomplete="current-password" required /></label>
+          <button class="button button-dark" type="submit">Entrar <span>↗</span></button>
+          <p id="login-status" class="manager-status" aria-live="polite">Usa la cuenta creada para la inmobiliaria.</p>
+        </form>
       </section>
 
-      <section class="publish-notice" aria-live="polite">
-        <span class="notice-icon">✓</span>
-        <div><strong>El gestor guarda los cambios en este dispositivo.</strong><p>Cuando termines, descarga el archivo de publicación y súbelo al repositorio de la web para que los cambios aparezcan para todos.</p></div>
-        <button class="button button-dark" id="download-data" type="button">Descargar actualización <span>↓</span></button>
-      </section>
-
-      <section class="business-settings">
-        <div class="subheading"><div><p class="eyebrow"><span></span> Datos de la agencia</p><h2>Contacto y marca</h2></div></div>
-        <div class="settings-grid">
-          <label>Nombre de la inmobiliaria<input id="agency-name" type="text" value="Inmobiliaria La Alcayna" /></label>
-          <label>WhatsApp con prefijo internacional<input id="agency-whatsapp" type="tel" placeholder="Ej. 34600111222" /></label>
-          <label>Correo electrónico<input id="agency-email" type="email" placeholder="nombre@inmobiliaria.com" /></label>
-          <label>Teléfono de contacto<input id="agency-phone" type="tel" placeholder="Ej. 968 000 000" /></label>
+      <section id="admin-panel" hidden>
+        <div class="publish-notice"><span class="notice-icon">✓</span><div><strong>Sesión iniciada</strong><p>Los cambios se guardan directamente y aparecen en la web sin subir otro archivo a GitHub.</p></div><button class="button button-quiet" id="logout-button" type="button">Cerrar sesión</button></div>
+        <div class="manager-columns">
+          <section class="editor-panel">
+            <div class="subheading"><div><p class="eyebrow"><span></span> Ficha del inmueble</p><h2 id="form-heading">Añadir propiedad</h2></div></div>
+            <form id="property-form">
+              <input id="property-id" type="hidden" />
+              <div class="form-grid">
+                <label class="wide">Título de la ficha<input id="property-title" type="text" placeholder="Ej. Chalet independiente con piscina" required /></label>
+                <label>Operación<select id="property-operation"><option value="venta">En venta</option><option value="alquiler">En alquiler</option></select></label>
+                <label>Tipo de inmueble<select id="property-type"><option value="casa">Casa / chalet</option><option value="piso">Piso</option><option value="atico">Ático</option><option value="local">Local</option><option value="terreno">Terreno</option></select></label>
+                <label>Precio (€)<input id="property-price" type="number" min="1" step="1000" required /></label>
+                <label>Etiqueta<input id="property-badge" type="text" placeholder="Ej. Novedad" /></label>
+                <label class="wide">Zona o localidad<input id="property-location" type="text" placeholder="Ej. La Alcayna, Molina de Segura" required /></label>
+                <label class="wide">Dirección (opcional)<input id="property-address" type="text" placeholder="Calle o referencia de zona" /></label>
+                <label class="wide">Enlace de ubicación en el mapa<input id="property-map" type="url" placeholder="Pega el enlace de Google Maps" /></label>
+                <label>Superficie (m²)<input id="property-area" type="number" min="0" /></label>
+                <label>Dormitorios<input id="property-bedrooms" type="number" min="0" /></label>
+                <label>Baños<input id="property-bathrooms" type="number" min="0" /></label>
+                <label>Plazas de parking<input id="property-parking" type="number" min="0" /></label>
+                <label class="wide">Descripción<textarea id="property-description" rows="4" placeholder="Describe la vivienda y lo que la hace especial."></textarea></label>
+                <label class="wide">Características, una por línea<textarea id="property-features" rows="4" placeholder="Piscina&#10;Jardín&#10;Aire acondicionado&#10;Reformado"></textarea></label>
+                <label class="wide photo-field">Fotografías <span class="optional">Puedes añadir varias</span><input id="property-photos" type="file" accept="image/jpeg,image/png,image/webp" multiple /><small>JPG, PNG o WebP. Máximo 8 MB por foto.</small></label>
+              </div>
+              <div class="photo-preview" id="photo-preview"></div>
+              <label class="publish-toggle"><input id="property-published" type="checkbox" checked /> Publicar esta propiedad en la web</label>
+              <div class="form-actions"><button class="button button-dark" type="submit" id="save-property">Guardar propiedad <span>↗</span></button><button class="button button-quiet" type="button" id="cancel-edit" hidden>Cancelar edición</button></div>
+              <p class="manager-status" id="form-status" aria-live="polite"></p>
+            </form>
+          </section>
+          <aside class="listing-panel">
+            <div class="subheading"><div><p class="eyebrow"><span></span> Anuncios</p><h2>Tus propiedades <span class="count-pill" id="property-count">0</span></h2></div></div>
+            <div class="listing-tools"><input id="property-search" type="search" placeholder="Buscar por nombre o zona" aria-label="Buscar propiedades" /><button class="button button-quiet" id="new-property" type="button">+ Añadir</button></div>
+            <div class="managed-list" id="managed-list"></div>
+            <div class="empty-list" id="empty-list" hidden><span>⌂</span><p>Aún no hay propiedades. Añade la primera ficha.</p></div>
+          </aside>
         </div>
-        <p class="settings-help">El número de WhatsApp se usa para preparar los mensajes de consulta desde la web.</p>
-      </section>
-
-      <div class="manager-columns">
-        <section class="editor-panel">
-          <div class="subheading"><div><p class="eyebrow"><span></span> Ficha del inmueble</p><h2 id="form-heading">Añadir propiedad</h2></div></div>
-          <form id="property-form">
-            <input id="property-id" type="hidden" />
-            <div class="form-grid">
-              <label class="wide">Título de la ficha<input id="property-title" type="text" placeholder="Ej. Chalet independiente con piscina" required /></label>
-              <label>Operación<select id="property-operation"><option value="venta">En venta</option><option value="alquiler">En alquiler</option></select></label>
-              <label>Tipo de inmueble<select id="property-type"><option value="casa">Casa / chalet</option><option value="piso">Piso</option><option value="atico">Ático</option><option value="local">Local</option><option value="terreno">Terreno</option></select></label>
-              <label>Precio (€)<input id="property-price" type="number" min="0" step="1000" placeholder="Ej. 325000" required /></label>
-              <label>Etiqueta opcional<input id="property-badge" type="text" placeholder="Ej. Novedad" /></label>
-              <label class="wide">Zona o localidad<input id="property-location" type="text" placeholder="Ej. La Alcayna, Molina de Segura" required /></label>
-              <label class="wide">Dirección (opcional)<input id="property-address" type="text" placeholder="Calle o referencia de zona" /></label>
-              <label class="wide">Enlace de ubicación en el mapa<input id="property-map" type="url" placeholder="Pega el enlace de Google Maps" /></label>
-              <label>Superficie (m²)<input id="property-area" type="number" min="0" placeholder="Ej. 180" /></label>
-              <label>Dormitorios<input id="property-bedrooms" type="number" min="0" placeholder="Ej. 4" /></label>
-              <label>Baños<input id="property-bathrooms" type="number" min="0" placeholder="Ej. 3" /></label>
-              <label>Plazas de parking<input id="property-parking" type="number" min="0" placeholder="Ej. 2" /></label>
-              <label class="wide">Descripción<textarea id="property-description" rows="4" placeholder="Describe la vivienda y lo que la hace especial."></textarea></label>
-              <label class="wide">Características, una por línea<textarea id="property-features" rows="4" placeholder="Piscina&#10;Jardín&#10;Aire acondicionado&#10;Reformado"></textarea></label>
-              <label class="wide photo-field">Fotografías <span class="optional">Añade varias para crear una galería</span><input id="property-photos" type="file" accept="image/*" multiple /><small>Se optimizan para la web. Se recomienda elegir fotos JPG o PNG.</small></label>
-            </div>
-            <div class="photo-preview" id="photo-preview" aria-live="polite"></div>
-            <div class="form-actions"><button class="button button-dark" type="submit" id="save-property">Guardar propiedad <span>↗</span></button><button class="button button-quiet" type="button" id="cancel-edit" hidden>Cancelar edición</button></div>
-            <p class="manager-status" id="form-status" aria-live="polite"></p>
-          </form>
-        </section>
-
-        <aside class="listing-panel">
-          <div class="subheading"><div><p class="eyebrow"><span></span> Anuncios de la web</p><h2>Tus propiedades <span class="count-pill" id="property-count">0</span></h2></div></div>
-          <div class="listing-tools"><input id="property-search" type="search" placeholder="Buscar por nombre o zona" aria-label="Buscar propiedades" /><button class="button button-quiet" id="new-property" type="button">+ Añadir</button></div>
-          <div class="managed-list" id="managed-list"></div>
-          <div class="empty-list" id="empty-list" hidden><span>⌂</span><p>Aún no hay propiedades. Añade la primera ficha.</p></div>
-          <button class="import-button" id="import-data" type="button">Importar archivo de propiedades</button>
-          <input id="import-file" type="file" accept=".js,application/javascript,text/javascript" hidden />
-        </aside>
-      </div>
-
-      <section class="publish-steps">
-        <p class="eyebrow"><span></span> Publicar cambios</p>
-        <h2>De la ficha a la web en tres pasos.</h2>
-        <ol><li><strong>Guarda</strong> las fichas que quieras publicar.</li><li><strong>Descarga</strong> el archivo actualizado desde el botón de arriba.</li><li><strong>Súbelo</strong> a GitHub Pages sustituyendo el archivo `datos.js` de la web y confirma los cambios.</li></ol>
-        <p id="manager-global-status" class="manager-global-status" aria-live="polite"></p>
       </section>
     </main>
     <footer class="manager-footer"><span>Inmobiliaria La Alcayna</span><a href="index.html">Abrir la web ↗</a></footer>

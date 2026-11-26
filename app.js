@@ -1,6 +1,10 @@
 (() => {
   const config = window.siteConfig || {};
-  const properties = Array.isArray(window.properties) ? window.properties : [];
+  let properties = Array.isArray(window.properties) ? window.properties : [];
+  const cloudConfig = window.supabaseConfig || {};
+  const cloudReady = Boolean(cloudConfig.url && cloudConfig.publishableKey && window.supabase?.createClient);
+  const cloudClient = cloudReady ? window.supabase.createClient(cloudConfig.url, cloudConfig.publishableKey) : null;
+  if (cloudReady) properties = [];
   const grid = document.querySelector("#property-grid");
   const operationFilter = document.querySelector("#operation-filter");
   const typeFilter = document.querySelector("#type-filter");
@@ -22,6 +26,21 @@
   const formatPrice = (price, operation) => {
     const formatted = new Intl.NumberFormat("es-ES", { maximumFractionDigits: 0 }).format(Number(price) || 0);
     return `${formatted} €${operation === "alquiler" ? " / mes" : ""}`;
+  };
+
+  const fromDatabase = (row) => {
+    const images = Array.isArray(row.images) ? row.images.map((item) => typeof item === "string" ? item : item.url).filter(Boolean) : [];
+    return {
+      ...row,
+      mapUrl: row.map_url || "",
+      bedrooms: row.bedrooms || 0,
+      bathrooms: row.bathrooms || 0,
+      area: row.area || 0,
+      parking: row.parking || 0,
+      images,
+      image: images[0] || "",
+      imageAlt: row.title
+    };
   };
 
   const typeNames = { piso: "Piso", casa: "Casa", atico: "Ático", local: "Local", terreno: "Terreno" };
@@ -183,4 +202,14 @@
 
   document.querySelector("#form-help").textContent = contactHint();
   renderProperties();
+  if (cloudClient) {
+    cloudClient.from("properties").select("*").eq("is_published", true).order("created_at", { ascending: false }).then(({ data, error }) => {
+      if (error) {
+        resultsCount.textContent = "No se pudieron cargar las propiedades. Vuelve a intentarlo más tarde.";
+        return;
+      }
+      properties = (data || []).map(fromDatabase);
+      renderProperties();
+    });
+  }
 })();

@@ -1,32 +1,25 @@
 # Inmobiliaria La Alcayna
 
-Web inmobiliaria estática, adaptable a móvil, con buscador y fichas detalladas. Incluye un gestor visual para añadir y editar anuncios sin escribir código.
+Web inmobiliaria estática para GitHub Pages, conectada con Supabase para el panel privado, las fichas y las fotografías.
 
-## Gestionar propiedades sin código
+## Puesta en marcha de la gestión privada
 
-1. Abre `gestionar.html` en el navegador. Una vez publicada la web, también estará en `https://tu-usuario.github.io/mi-inmobiliaria/gestionar.html`.
-2. En **Añadir propiedad**, completa el tipo de inmueble (casa, piso, ático, local o terreno), operación, precio, zona, ubicación del mapa, metros, dormitorios, baños, parking y descripción. Añade las fotografías y las características, una por línea.
-3. Pulsa **Guardar propiedad**. Para modificar una ficha existente, pulsa **Editar** en la lista. Las fichas se guardan en el navegador de ese dispositivo.
-4. Cuando quieras publicar los cambios, pulsa **Descargar actualización**. Se descarga un archivo llamado `datos.js`.
-5. Sube ese `datos.js` a tu repositorio de GitHub, reemplazando el archivo que ya existe, y confirma los cambios. GitHub Pages publicará la actualización.
+La web ya contiene la URL del proyecto y su clave publicable en `supabase-config.js`. La clave publishable está diseñada para usarse en el navegador; el acceso a las propiedades y las fotos lo limitan las políticas de la base de datos. No pegues aquí una clave `secret` ni `service_role`.
 
-El gestor también permite importar un `datos.js` generado anteriormente, por si cambias de ordenador o navegador. La página pública no cambia hasta que se sube la actualización a GitHub.
+1. En Supabase abre **SQL Editor → New query**.
+2. Abre el archivo `supabase/crear-base-de-datos.sql`, copia todo su contenido en la consulta y pulsa **Run**. Esto crea la tabla, las reglas de acceso y el almacén de fotos. Solo la cuenta `inmoalcayna@gmail.com` puede crear, editar o borrar fichas; los visitantes solo pueden ver anuncios publicados.
+3. En Supabase abre **Authentication → Users → Add user** y crea el usuario `inmoalcayna@gmail.com` con una contraseña que guardes de forma privada. Confirma la cuenta si el panel te ofrece esa opción. No compartas la contraseña.
+4. Sube al repositorio actualizado el contenido de esta carpeta, incluyendo `supabase-config.js`, `auth-panel.css` y la carpeta `supabase/`. Deja `index.html` directamente en la raíz del repositorio y confirma los cambios.
+5. Abre `https://TU-USUARIO.github.io/inmobiliaria-la-alcayna/gestionar.html`, inicia sesión con el correo y la contraseña y ya podrás administrar las propiedades.
 
-Las fotos seleccionadas se reducen para la web y se incluyen dentro de `datos.js`, por lo que no hace falta subirlas por separado. Si vas a añadir muchas propiedades con varias fotos, descarga y publica con frecuencia para guardar una copia.
+## Añadir o editar propiedades
 
-## Datos de la inmobiliaria
+Desde el panel, completa tipo, operación, precio, zona, mapa, superficie, habitaciones, baños, parking, descripción, características y fotografías. Marca **Publicar esta propiedad en la web** para mostrarla. Al guardar, la ficha queda disponible en la página pública inmediatamente, sin volver a subir archivos. Puedes iniciar sesión desde cualquier dispositivo.
 
-El nombre está configurado como **Inmobiliaria La Alcayna**. En el gestor puedes actualizar el correo, teléfono y WhatsApp. El correo actual es `inmoalcayna@gmail.com`; añade el WhatsApp internacional, solo cifras (por ejemplo, `34600111222`), para que el formulario prepare las consultas.
+Las fotos admitidas son JPG, PNG y WebP, con un máximo de 8 MB cada una. El formulario guarda las fotos en el almacén de Supabase y las enlaza a la ficha.
 
-Las fichas que aparecen ahora están marcadas como **Ejemplo** y usan ubicaciones y fotos ilustrativas. Sustitúyelas por inmuebles reales antes de publicar. Al editar una ficha de ejemplo, puedes completar sus datos reales y quitar la etiqueta `Ejemplo`.
+## Alojamiento y límites
 
-## Alojamiento gratuito con GitHub Pages
+GitHub Pages publica la parte visible de la web; Supabase gestiona el acceso, los datos y las fotos. El plan gratuito de Supabase incluye cuotas y puede pausar proyectos que no tengan actividad durante una semana; consulta sus [límites y precios](https://supabase.com/pricing).
 
-GitHub Pages sirve páginas estáticas gratis desde un repositorio público. Para esta web no hace falta contratar un servidor. La dirección gratuita tendrá un formato parecido a `https://tu-usuario.github.io/mi-inmobiliaria/`.
-
-1. Crea una cuenta en [GitHub](https://github.com/) si todavía no tienes una.
-2. Crea un repositorio **público** nuevo y sube los archivos de esta carpeta: `index.html`, `styles.css`, `fichas.css`, `app.js`, `datos.js`, `gestionar.html`, `gestionar.css` y `gestionar.js`.
-3. En el repositorio, abre **Settings → Pages**. En **Build and deployment**, elige **Deploy from a branch**, selecciona `main` y la carpeta `/ (root)`, y guarda.
-4. Cuando termine la publicación, GitHub mostrará el enlace de la web en esa pantalla.
-
-Puedes usar un dominio propio si ya tienes uno; el alojamiento en Pages sigue siendo estático. La web puede recibir consultas por enlaces a WhatsApp, correo y teléfono; no almacena formularios en un servidor.
+El contenido de ejemplo que había en la web no se copia a la base de datos. Añade las propiedades reales desde el panel. El formulario de contacto usa WhatsApp si se configura; mientras tanto, prepara un correo a `inmoalcayna@gmail.com`.
