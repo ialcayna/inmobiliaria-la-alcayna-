@@ -2,6 +2,7 @@
   const config = window.supabaseConfig || {};
   const loginPanel = document.querySelector("#login-panel");
   const adminPanel = document.querySelector("#admin-panel");
+  const resetPanel = document.querySelector("#password-reset-panel");
   const loginStatus = document.querySelector("#login-status");
   const formStatus = document.querySelector("#form-status");
   const form = document.querySelector("#property-form");
@@ -30,6 +31,7 @@
 
   function showAdmin(email) {
     loginPanel.hidden = true;
+    resetPanel.hidden = true;
     adminPanel.hidden = false;
     document.querySelector(".publish-notice strong").textContent = `Sesión iniciada como ${email}`;
     loadProperties();
@@ -37,7 +39,14 @@
 
   function showLogin() {
     adminPanel.hidden = true;
+    resetPanel.hidden = true;
     loginPanel.hidden = false;
+  }
+
+  function showRecovery() {
+    loginPanel.hidden = true;
+    adminPanel.hidden = true;
+    resetPanel.hidden = false;
   }
 
   async function loadProperties() {
@@ -223,6 +232,31 @@
   }
 
   document.querySelector("#login-form").addEventListener("submit", signIn);
+  document.querySelector("#request-password-reset").addEventListener("click", async () => {
+    const email = loginEmail.value.trim().toLowerCase();
+    if (email !== String(config.adminEmail || "").toLowerCase()) {
+      status(loginStatus, `Escribe primero el usuario autorizado: ${config.adminEmail}.`, "error");
+      return;
+    }
+    status(loginStatus, "Enviando el enlace de recuperación…");
+    const redirectTo = config.redirectUrl || `${window.location.origin}${window.location.pathname}`;
+    const { error } = await client.auth.resetPasswordForEmail(email, { redirectTo });
+    if (error) status(loginStatus, `No se pudo enviar el correo: ${error.message}`, "error");
+    else status(loginStatus, "Revisa tu correo y abre el enlace para crear una contraseña nueva.", "success");
+  });
+  document.querySelector("#password-reset-form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const password = document.querySelector("#new-password").value;
+    const confirmation = document.querySelector("#confirm-password").value;
+    const resetStatus = document.querySelector("#password-reset-status");
+    if (password.length < 8) return status(resetStatus, "Usa al menos 8 caracteres.", "error");
+    if (password !== confirmation) return status(resetStatus, "Las contraseñas no coinciden.", "error");
+    const { error } = await client.auth.updateUser({ password });
+    if (error) return status(resetStatus, `No se pudo cambiar: ${error.message}`, "error");
+    status(resetStatus, "Contraseña actualizada. Ya puedes entrar al panel.", "success");
+    loginPassword.value = "";
+    window.setTimeout(() => showAdmin(config.adminEmail), 1000);
+  });
   document.querySelector("#logout-button").addEventListener("click", async () => { await client.auth.signOut(); showLogin(); });
   form.addEventListener("submit", saveProperty);
   document.querySelector("#cancel-edit").addEventListener("click", clearForm);
@@ -271,7 +305,8 @@
     if (data.session?.user?.email?.toLowerCase() === String(config.adminEmail).toLowerCase()) showAdmin(data.session.user.email);
     else if (data.session) client.auth.signOut();
   });
-  client.auth.onAuthStateChange((_event, session) => {
-    if (!session) showLogin();
+  client.auth.onAuthStateChange((event, session) => {
+    if (event === "PASSWORD_RECOVERY") showRecovery();
+    else if (!session) showLogin();
   });
 })();

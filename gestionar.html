@@ -29,7 +29,19 @@
           <label>Correo / usuario<input id="login-email" type="email" autocomplete="username" required /></label>
           <label>Contraseña<input id="login-password" type="password" autocomplete="current-password" required /></label>
           <button class="button button-dark" type="submit">Entrar <span>↗</span></button>
+          <button class="text-action" id="request-password-reset" type="button">He olvidado mi contraseña</button>
           <p id="login-status" class="manager-status" aria-live="polite">Usa la cuenta creada para la inmobiliaria.</p>
+        </form>
+      </section>
+
+      <section class="login-panel" id="password-reset-panel" hidden>
+        <p class="eyebrow"><span></span> Seguridad de la cuenta</p>
+        <h2>Crear una contraseña nueva</h2>
+        <form id="password-reset-form" class="login-form">
+          <label>Nueva contraseña<input id="new-password" type="password" autocomplete="new-password" minlength="8" required /></label>
+          <label>Repite la contraseña<input id="confirm-password" type="password" autocomplete="new-password" minlength="8" required /></label>
+          <button class="button button-dark" type="submit">Guardar contraseña <span>↗</span></button>
+          <p id="password-reset-status" class="manager-status" aria-live="polite"></p>
         </form>
       </section>
 

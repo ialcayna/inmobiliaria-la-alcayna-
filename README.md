@@ -9,14 +9,19 @@ La web ya contiene la URL del proyecto y su clave publicable en `supabase-config
 1. En Supabase abre **SQL Editor → New query**.
 2. Abre el archivo `supabase/crear-base-de-datos.sql`, copia todo su contenido en la consulta y pulsa **Run**. Esto crea la tabla, las reglas de acceso y el almacén de fotos. Solo la cuenta `inmoalcayna@gmail.com` puede crear, editar o borrar fichas; los visitantes solo pueden ver anuncios publicados.
 3. En Supabase abre **Authentication → Users → Add user** y crea el usuario `inmoalcayna@gmail.com` con una contraseña que guardes de forma privada. Confirma la cuenta si el panel te ofrece esa opción. No compartas la contraseña.
-4. Sube al repositorio actualizado el contenido de esta carpeta, incluyendo `supabase-config.js`, `auth-panel.css` y la carpeta `supabase/`. Deja `index.html` directamente en la raíz del repositorio y confirma los cambios.
-5. Abre `https://TU-USUARIO.github.io/inmobiliaria-la-alcayna/gestionar.html`, inicia sesión con el correo y la contraseña y ya podrás administrar las propiedades.
+4. En **Authentication → URL Configuration → Redirect URLs**, añade `https://ialcayna.github.io/inmobiliaria-la-alcayna-/gestionar.html`.
+5. Sube al repositorio actualizado el contenido de esta carpeta, incluyendo `supabase-config.js`, `auth-panel.css` y la carpeta `supabase/`. Deja `index.html` directamente en la raíz del repositorio y confirma los cambios.
+6. Abre `https://ialcayna.github.io/inmobiliaria-la-alcayna-/gestionar.html`, inicia sesión con el correo y la contraseña y ya podrás administrar las propiedades.
 
 ## Añadir o editar propiedades
 
 Desde el panel, completa tipo, operación, precio, zona, mapa, superficie, habitaciones, baños, parking, descripción, características y fotografías. Marca **Publicar esta propiedad en la web** para mostrarla. Al guardar, la ficha queda disponible en la página pública inmediatamente, sin volver a subir archivos. Puedes iniciar sesión desde cualquier dispositivo.
 
 Las fotos admitidas son JPG, PNG y WebP, con un máximo de 8 MB cada una. El formulario guarda las fotos en el almacén de Supabase y las enlaza a la ficha.
+
+## Recuperar la contraseña
+
+En el acceso del panel, pulsa **He olvidado mi contraseña**. Supabase enviará un enlace al correo autorizado. Abre ese enlace para introducir y confirmar la contraseña nueva. Para que el enlace vuelva al panel, debe estar permitida la dirección de gestión indicada arriba en **Authentication → URL Configuration → Redirect URLs**.
 
 ## Alojamiento y límites
 
