@@ -1,6 +1,6 @@
 # Inmobiliaria La Alcayna
 
-Web inmobiliaria estática para GitHub Pages, conectada con Supabase para el panel privado, las fichas y las fotografías.
+Web inmobiliaria estática para GitHub Pages, conectada con Supabase para el panel privado, las fichas y las fotografías. Las fichas incluyen galería interactiva, filtros, favoritos y opciones para compartir cada inmueble.
 
 ## Puesta en marcha de la gestión privada
 
@@ -16,6 +16,8 @@ La web ya contiene la URL del proyecto y su clave publicable en `supabase-config
 ## Añadir o editar propiedades
 
 Desde el panel, completa tipo, operación, precio, zona, mapa, superficie, habitaciones, baños, parking, descripción, características y fotografías. Marca **Publicar esta propiedad en la web** para mostrarla. Al guardar, la ficha queda disponible en la página pública inmediatamente, sin volver a subir archivos. Puedes iniciar sesión desde cualquier dispositivo.
+
+En la web, las fotos se pueden recorrer con miniaturas, flechas, teclado o gestos en móvil; también se pueden ampliar y poner en pase automático. Los favoritos quedan guardados en el navegador del visitante. Cada ficha tiene un enlace propio para compartir. WhatsApp y Facebook tienen botones directos; Instagram y TikTok usan el menú de compartir del móvil o copian el enlace para pegarlo en una publicación.
 
 Las fotos admitidas son JPG, PNG y WebP, con un máximo de 8 MB cada una. El formulario guarda las fotos en el almacén de Supabase y las enlaza a la ficha.
 

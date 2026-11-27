@@ -33,7 +33,10 @@
 
     <main>
       <section class="hero" id="inicio">
-        <div class="hero-image" role="img" aria-label="Casa luminosa rodeada de vegetación"></div>
+        <div class="hero-image" id="hero-image" role="img" aria-label="Casa luminosa rodeada de vegetación">
+          <img class="hero-slide is-active" id="hero-slide-a" alt="" aria-hidden="true" />
+          <img class="hero-slide" id="hero-slide-b" alt="" aria-hidden="true" />
+        </div>
         <div class="hero-shade"></div>
         <div class="hero-content">
           <p class="eyebrow light"><span></span> Tu próximo capítulo empieza aquí</p>
@@ -42,7 +45,15 @@
           <a class="button button-light" href="#propiedades">Explorar propiedades <span aria-hidden="true">↘</span></a>
         </div>
         <div class="hero-note"><span class="note-line"></span><span>Hogares con historia,<br />personas con futuro.</span></div>
-        <div class="hero-index">01 <span>/</span> 03</div>
+        <div class="hero-controls" aria-label="Controles de imágenes destacadas">
+          <button class="hero-toggle" id="hero-toggle" type="button" aria-label="Pausar imágenes" aria-pressed="false">Ⅱ</button>
+          <div class="hero-dots" id="hero-dots" aria-label="Elegir imagen">
+            <button type="button" aria-label="Mostrar imagen 1" aria-current="true"></button>
+            <button type="button" aria-label="Mostrar imagen 2" aria-current="false"></button>
+            <button type="button" aria-label="Mostrar imagen 3" aria-current="false"></button>
+          </div>
+          <div class="hero-index" id="hero-index" aria-hidden="true">01 <span>/</span> 03</div>
+        </div>
       </section>
 
       <section class="search-panel" aria-label="Buscar propiedades">
@@ -58,7 +69,7 @@
           <div><p class="eyebrow"><span></span> Selección cuidada</p><h2>Propiedades para<br /><em>vivirlas de verdad.</em></h2></div>
           <div class="heading-side"><p>Espacios con personalidad, elegidos para ayudarte a imaginar todo lo que viene.</p><a class="text-link" href="#contacto">¿No encuentras lo que buscas? <span>↗</span></a></div>
         </div>
-        <div class="property-toolbar"><p id="results-count" aria-live="polite">Mostrando propiedades</p><label class="sort-label">Ordenar por <select id="sort-filter"><option value="featured">Relevancia</option><option value="price-asc">Menor precio</option><option value="price-desc">Mayor precio</option></select></label></div>
+        <div class="property-toolbar"><p id="results-count" aria-live="polite">Mostrando propiedades</p><div class="toolbar-actions"><button class="favorites-filter" id="favorites-filter" type="button" aria-pressed="false">♡ Mis favoritos</button><label class="sort-label">Ordenar por <select id="sort-filter"><option value="featured">Relevancia</option><option value="price-asc">Menor precio</option><option value="price-desc">Mayor precio</option></select></label></div></div>
         <div class="property-grid" id="property-grid"></div>
         <div class="empty-state" id="empty-state" hidden><span>⌂</span><h3>No encontramos propiedades con esos filtros.</h3><p>Prueba con otra zona o escríbenos y te ayudamos.</p><button class="text-link" type="button" id="clear-filters">Ver todas las propiedades <span>↗</span></button></div>
         <p class="demo-note" id="demo-note">Las fichas marcadas como ejemplo son contenido de muestra. Sustitúyelas antes de publicar.</p>
@@ -95,10 +106,13 @@
       <button class="dialog-close" id="dialog-close" type="button" aria-label="Cerrar ficha">×</button>
       <div class="dialog-layout">
         <div class="dialog-gallery">
-          <img id="dialog-image" src="" alt="" />
+          <button class="zoom-image" id="zoom-image" type="button" aria-label="Ampliar fotografía"><img id="dialog-image" src="" alt="" /></button>
           <button class="gallery-control gallery-prev" id="gallery-prev" type="button" aria-label="Foto anterior">←</button>
           <button class="gallery-control gallery-next" id="gallery-next" type="button" aria-label="Foto siguiente">→</button>
           <span class="gallery-count" id="gallery-count"></span>
+          <button class="gallery-toggle" id="gallery-toggle" type="button" aria-label="Pausar pase de fotos" aria-pressed="false" hidden>Ⅱ</button>
+          <button class="gallery-fullscreen" id="gallery-fullscreen" type="button" aria-label="Ampliar fotos a pantalla completa" hidden>⛶</button>
+          <div class="gallery-thumbnails" id="gallery-thumbnails" aria-label="Elegir fotografía"></div>
         </div>
         <div class="dialog-content">
           <p class="dialog-kicker" id="dialog-kicker"></p>
@@ -110,9 +124,25 @@
           <p class="dialog-description" id="dialog-description"></p>
           <h3>Características</h3>
           <ul class="feature-list" id="dialog-features"></ul>
+          <div class="share-heading">Compartir esta propiedad</div>
+          <div class="share-buttons" id="share-buttons" aria-label="Compartir propiedad">
+            <button type="button" data-share="whatsapp">WhatsApp</button>
+            <button type="button" data-share="facebook">Facebook</button>
+            <button type="button" data-share="instagram">Instagram</button>
+            <button type="button" data-share="tiktok">TikTok</button>
+          </div>
+          <p class="share-status" id="share-status" aria-live="polite"></p>
           <a class="button button-light dialog-contact" id="dialog-contact" href="#contacto">Consultar esta propiedad <span aria-hidden="true">↗</span></a>
         </div>
       </div>
+    </dialog>
+
+    <dialog class="photo-lightbox" id="photo-lightbox" aria-label="Fotografía ampliada">
+      <button class="lightbox-close" id="lightbox-close" type="button" aria-label="Cerrar fotografía ampliada">×</button>
+      <button class="lightbox-control lightbox-prev" id="lightbox-prev" type="button" aria-label="Foto anterior">←</button>
+      <img id="lightbox-image" src="" alt="" />
+      <button class="lightbox-control lightbox-next" id="lightbox-next" type="button" aria-label="Foto siguiente">→</button>
+      <span class="lightbox-count" id="lightbox-count"></span>
     </dialog>
 
     <footer class="site-footer">
