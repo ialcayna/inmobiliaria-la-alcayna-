@@ -45,9 +45,9 @@
           <a class="button button-light" href="#propiedades">Explorar propiedades <span aria-hidden="true">↘</span></a>
         </div>
         <div class="hero-note"><span class="note-line"></span><span>Hogares con historia,<br />personas con futuro.</span></div>
-        <div class="hero-controls" aria-label="Controles de imágenes destacadas">
+        <div class="hero-controls" role="group" aria-label="Controles de imágenes destacadas">
           <button class="hero-toggle" id="hero-toggle" type="button" aria-label="Pausar imágenes" aria-pressed="false">Ⅱ</button>
-          <div class="hero-dots" id="hero-dots" aria-label="Elegir imagen">
+          <div class="hero-dots" id="hero-dots" role="group" aria-label="Elegir imagen">
             <button type="button" aria-label="Mostrar imagen 1" aria-current="true"></button>
             <button type="button" aria-label="Mostrar imagen 2" aria-current="false"></button>
             <button type="button" aria-label="Mostrar imagen 3" aria-current="false"></button>
@@ -77,7 +77,12 @@
 
       <section class="about-section" id="nosotros">
         <div class="about-image" role="img" aria-label="Salón sereno con luz natural"></div>
-        <div class="about-copy"><p class="eyebrow light"><span></span> Así entendemos nuestro trabajo</p><h2>Una buena mudanza<br />empieza con <em>confianza.</em></h2><p>Comprar o vender una casa es una decisión importante. Por eso ponemos a las personas primero, explicamos cada paso y cuidamos los detalles que hacen que todo resulte más fácil.</p><a class="button button-outline" href="#contacto">Conócenos un poco más <span aria-hidden="true">↗</span></a><div class="about-stat"><strong>100%</strong><span>atención<br />personal</span></div></div>
+        <div class="about-copy"><p class="eyebrow light"><span></span> Así entendemos nuestro trabajo</p><h2 id="about-heading">Una buena mudanza<br />empieza con <em>confianza.</em></h2><p id="about-description">Comprar o vender una casa es una decisión importante. Por eso ponemos a las personas primero, explicamos cada paso y cuidamos los detalles que hacen que todo resulte más fácil.</p><a class="button button-outline" href="#contacto">Conócenos un poco más <span aria-hidden="true">↗</span></a><div class="about-stat"><strong id="about-stat">100%</strong><span id="about-stat-label">atención<br />personal</span></div></div>
+      </section>
+
+      <section class="reviews-section section-wrap" id="resenas" hidden>
+        <div class="section-heading"><div><p class="eyebrow"><span></span> Lo que dicen nuestros clientes</p><h2>Experiencias<br /><em>que nos inspiran.</em></h2></div><div class="heading-side"><p>La confianza se construye con cada historia y cada hogar encontrado.</p></div></div>
+        <div class="reviews-grid" id="reviews-grid"></div>
       </section>
 
       <section class="promise-section section-wrap">
@@ -112,7 +117,7 @@
           <span class="gallery-count" id="gallery-count"></span>
           <button class="gallery-toggle" id="gallery-toggle" type="button" aria-label="Pausar pase de fotos" aria-pressed="false" hidden>Ⅱ</button>
           <button class="gallery-fullscreen" id="gallery-fullscreen" type="button" aria-label="Ampliar fotos a pantalla completa" hidden>⛶</button>
-          <div class="gallery-thumbnails" id="gallery-thumbnails" aria-label="Elegir fotografía"></div>
+          <div class="gallery-thumbnails" id="gallery-thumbnails" role="group" aria-label="Elegir fotografía"></div>
         </div>
         <div class="dialog-content">
           <p class="dialog-kicker" id="dialog-kicker"></p>
@@ -147,7 +152,7 @@
 
     <footer class="site-footer">
       <a class="brand footer-brand" href="#inicio"><span class="brand-mark" aria-hidden="true">A</span><span class="brand-copy"><strong data-brand>Inmobiliaria La Alcayna</strong><small>INMOBILIARIA</small></span></a>
-      <p>Un hogar para cada historia.</p><div class="footer-links"><a href="#propiedades">Propiedades</a><a href="#nosotros">Nosotros</a><a href="#contacto">Contacto</a></div><small class="copyright">© <span id="year"></span> <span data-brand>Hogar & Horizonte</span>. Todos los derechos reservados.</small>
+      <p>Un hogar para cada historia.</p><div class="footer-links"><a href="#propiedades">Propiedades</a><a href="#nosotros">Nosotros</a><a href="#resenas">Reseñas</a><a href="#contacto">Contacto</a></div><small class="copyright">© <span id="year"></span> <span data-brand>Hogar & Horizonte</span>. Todos los derechos reservados.</small>
     </footer>
   </body>
 </html>

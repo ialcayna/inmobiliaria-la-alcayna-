@@ -47,6 +47,28 @@
 
       <section id="admin-panel" hidden>
         <div class="publish-notice"><span class="notice-icon">✓</span><div><strong>Sesión iniciada</strong><p>Los cambios se guardan directamente y aparecen en la web sin subir otro archivo a GitHub.</p></div><button class="button button-quiet" id="logout-button" type="button">Cerrar sesión</button></div>
+        <section class="editor-panel site-editor">
+          <div class="subheading"><div><p class="eyebrow"><span></span> Contenido de la web</p><h2>Editar secciones</h2></div></div>
+          <p class="editor-help">Cambia estos textos y datos de contacto desde aquí. Se mostrarán en la página principal al guardar.</p>
+          <form id="site-content-form">
+            <div class="form-grid">
+              <label class="wide">Título de “Nosotros”<input id="about-title" type="text" required /></label>
+              <label class="wide">Texto de “Nosotros”<textarea id="about-text" rows="4"></textarea></label>
+              <label>Dato destacado<input id="about-stat" type="text" placeholder="Ej. 100%" /></label>
+              <label>Texto del dato<input id="about-stat-label" type="text" placeholder="Atención personal" /></label>
+              <label>Teléfono<input id="contact-phone" type="tel" /></label>
+              <label>WhatsApp con prefijo de país<input id="contact-whatsapp" type="tel" placeholder="Ej. 34600000000" /></label>
+              <label class="wide">Correo de contacto<input id="contact-email" type="email" /></label>
+            </div>
+            <div class="review-editor">
+              <h3>Reseñas de clientes</h3>
+              <div id="review-list"></div>
+              <div class="review-add-row"><input id="new-review-name" type="text" placeholder="Nombre del cliente" /><textarea id="new-review-text" rows="2" placeholder="Escribe su reseña"></textarea><button class="button button-quiet" id="add-review" type="button">+ Añadir reseña</button></div>
+            </div>
+            <div class="form-actions"><button class="button button-dark" type="submit" id="save-site-content">Guardar cambios <span>↗</span></button></div>
+            <p class="manager-status form-status" id="site-content-status" aria-live="polite"></p>
+          </form>
+        </section>
         <div class="manager-columns">
           <section class="editor-panel">
             <div class="subheading"><div><p class="eyebrow"><span></span> Ficha del inmueble</p><h2 id="form-heading">Añadir propiedad</h2></div></div>
@@ -67,7 +89,7 @@
                 <label>Plazas de parking<input id="property-parking" type="number" min="0" /></label>
                 <label class="wide">Descripción<textarea id="property-description" rows="4" placeholder="Describe la vivienda y lo que la hace especial."></textarea></label>
                 <label class="wide">Características, una por línea<textarea id="property-features" rows="4" placeholder="Piscina&#10;Jardín&#10;Aire acondicionado&#10;Reformado"></textarea></label>
-                <label class="wide photo-field">Fotografías <span class="optional">Puedes añadir varias</span><input id="property-photos" type="file" accept="image/jpeg,image/png,image/webp" multiple /><small>JPG, PNG o WebP. Máximo 8 MB por foto.</small></label>
+                <label class="wide photo-field">Fotografías <span class="optional">Puedes añadir varias</span><input id="property-photos" type="file" accept="image/jpeg,image/png,image/webp" multiple /><small>JPG, PNG o WebP. Se reducen y optimizan automáticamente al subirlas.</small></label>
               </div>
               <div class="photo-preview" id="photo-preview"></div>
               <label class="publish-toggle"><input id="property-published" type="checkbox" checked /> Publicar esta propiedad en la web</label>

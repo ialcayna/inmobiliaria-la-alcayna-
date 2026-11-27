@@ -23,7 +23,8 @@
   let galleryIndex = 0;
   let galleryTimer = null;
   let galleryPaused = false;
-  const whatsappNumber = String(config.whatsapp || "").replace(/\D/g, "");
+  let whatsappNumber = String(config.whatsapp || "").replace(/\D/g, "");
+  let contactEmail = config.email || "";
   let selectedProperty = null;
   let showFavorites = false;
   let favoriteIds = new Set();
@@ -407,11 +408,31 @@
     renderProperties();
   });
 
-  const detailItems = [];
-  if (config.phone) detailItems.push(`<a href="tel:${escapeHTML(config.phone)}">${escapeHTML(config.phone)}</a>`);
-  if (config.email) detailItems.push(`<a href="mailto:${escapeHTML(config.email)}">${escapeHTML(config.email)}</a>`);
-  if (detailItems.length) document.querySelector("#contact-details").innerHTML = detailItems.join("");
-  else document.querySelector("#contact-details").innerHTML = `<span class="contact-setup">Añade tu teléfono o correo en <strong>datos.js</strong> para mostrar aquí tus datos de contacto.</span>`;
+  const renderContactDetails = (settings = {}) => {
+    const phone = settings.phone || config.phone || "";
+    const email = settings.email || config.email || "";
+    contactEmail = email;
+    const details = [];
+    if (phone) details.push(`<a href="tel:${escapeHTML(phone)}">${escapeHTML(phone)}</a>`);
+    if (email) details.push(`<a href="mailto:${escapeHTML(email)}">${escapeHTML(email)}</a>`);
+    document.querySelector("#contact-details").innerHTML = details.length ? details.join("") : `<span class="contact-setup">Llámanos o escríbenos para ayudarte.</span>`;
+    whatsappNumber = String(settings.whatsapp || config.whatsapp || "").replace(/\D/g, "");
+    document.querySelector("#form-help").textContent = contactHint();
+  };
+
+  const applySiteContent = (content = {}) => {
+    if (content.aboutTitle) document.querySelector("#about-heading").textContent = content.aboutTitle;
+    if (content.aboutText) document.querySelector("#about-description").textContent = content.aboutText;
+    if (content.aboutStat) document.querySelector("#about-stat").textContent = content.aboutStat;
+    if (content.aboutStatLabel) document.querySelector("#about-stat-label").textContent = content.aboutStatLabel;
+    renderContactDetails(content);
+    const reviews = Array.isArray(content.reviews) ? content.reviews.filter((review) => review.name && review.text) : [];
+    const section = document.querySelector("#resenas");
+    section.hidden = reviews.length === 0;
+    document.querySelector("#reviews-grid").innerHTML = reviews.map((review) => `<article class="review-card"><div class="review-stars" aria-label="Reseña de cliente">★★★★★</div><blockquote>“${escapeHTML(review.text)}”</blockquote><p>${escapeHTML(review.name)}</p></article>`).join("");
+  };
+
+  renderContactDetails();
 
   document.querySelector("#contact-form").addEventListener("submit", (event) => {
     event.preventDefault();
@@ -426,9 +447,9 @@
       window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
       return;
     }
-    if (config.email) {
+    if (contactEmail) {
       const subject = selectedProperty ? `Consulta sobre ${selectedProperty.title}` : "Consulta desde la web inmobiliaria";
-      window.location.href = `mailto:${config.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(text)}`;
+      window.location.href = `mailto:${contactEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(text)}`;
       return;
     }
     document.querySelector("#form-help").textContent = contactHint();
@@ -449,6 +470,9 @@
   document.querySelector("#form-help").textContent = contactHint();
   renderProperties();
   if (cloudClient) {
+    cloudClient.from("site_settings").select("content").eq("id", "main").maybeSingle().then(({ data }) => {
+      if (data?.content) applySiteContent(data.content);
+    });
     cloudClient.from("properties").select("*").eq("is_published", true).order("created_at", { ascending: false }).then(({ data, error }) => {
       if (error) {
         resultsCount.textContent = "No se pudieron cargar las propiedades. Vuelve a intentarlo más tarde.";

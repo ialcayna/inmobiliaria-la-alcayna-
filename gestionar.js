@@ -20,6 +20,8 @@
   let photos = [];
   let newFiles = [];
   let editingId = null;
+  let reviews = [];
+  let siteContent = {};
 
   const escapeHTML = (value) => String(value ?? "").replace(/[&<>"']/g, (character) => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
@@ -37,6 +39,7 @@
     adminPanel.hidden = false;
     document.querySelector(".publish-notice strong").textContent = `Sesión iniciada como ${email}`;
     loadProperties();
+    loadSiteContent();
   }
 
   function showLogin() {
@@ -59,6 +62,57 @@
     }
     properties = data || [];
     renderProperties();
+  }
+
+  function renderReviews() {
+    document.querySelector("#review-list").innerHTML = reviews.map((review, index) => `
+      <div class="review-row"><div><strong>${escapeHTML(review.name)}</strong><p>${escapeHTML(review.text)}</p></div><button type="button" class="button button-quiet" data-remove-review="${index}">Quitar</button></div>`).join("")
+      || '<p class="editor-help">Todavía no hay reseñas. Puedes añadirlas abajo.</p>';
+  }
+
+  async function loadSiteContent() {
+    const { data, error } = await client.from("site_settings").select("content").eq("id", "main").maybeSingle();
+    if (error) {
+      status(document.querySelector("#site-content-status"), "Activa la edición de secciones ejecutando la actualización indicada en el archivo de instrucciones.", "error");
+      return;
+    }
+    siteContent = data?.content || {};
+    const fields = {
+      "about-title": siteContent.aboutTitle || "Una buena mudanza empieza con confianza.",
+      "about-text": siteContent.aboutText || "Comprar o vender una casa es una decisión importante. Por eso ponemos a las personas primero, explicamos cada paso y cuidamos los detalles que hacen que todo resulte más fácil.",
+      "about-stat": siteContent.aboutStat || "100%",
+      "about-stat-label": siteContent.aboutStatLabel || "Atención personal",
+      "contact-phone": siteContent.phone || "",
+      "contact-whatsapp": siteContent.whatsapp || "",
+      "contact-email": siteContent.email || "inmoalcayna@gmail.com"
+    };
+    Object.entries(fields).forEach(([id, value]) => { document.getElementById(id).value = value; });
+    reviews = Array.isArray(siteContent.reviews) ? siteContent.reviews : [];
+    renderReviews();
+  }
+
+  async function saveSiteContent(event) {
+    event.preventDefault();
+    const button = document.querySelector("#save-site-content");
+    button.disabled = true;
+    const content = {
+      aboutTitle: document.querySelector("#about-title").value.trim(),
+      aboutText: document.querySelector("#about-text").value.trim(),
+      aboutStat: document.querySelector("#about-stat").value.trim(),
+      aboutStatLabel: document.querySelector("#about-stat-label").value.trim(),
+      phone: document.querySelector("#contact-phone").value.trim(),
+      whatsapp: document.querySelector("#contact-whatsapp").value.trim(),
+      email: document.querySelector("#contact-email").value.trim(),
+      reviews
+    };
+    try {
+      const { error } = await client.from("site_settings").update({ content, updated_at: new Date().toISOString() }).eq("id", "main");
+      if (error) throw error;
+      siteContent = content;
+      status(document.querySelector("#site-content-status"), "Cambios guardados. Ya se muestran en la web.", "success");
+    } catch (error) {
+      status(document.querySelector("#site-content-status"), `No se pudieron guardar los cambios: ${error.message}`, "error");
+    } finally { button.disabled = false; }
   }
 
   function renderPhotos() {
@@ -133,9 +187,31 @@
     window.scrollTo({ top: document.querySelector(".editor-panel").getBoundingClientRect().top + window.scrollY - 20, behavior: "smooth" });
   }
 
+  async function optimizePhoto(file) {
+    const image = await createImageBitmap(file);
+    const maxSide = 1600;
+    const scale = Math.min(1, maxSide / Math.max(image.width, image.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(image.width * scale));
+    canvas.height = Math.max(1, Math.round(image.height * scale));
+    const context = canvas.getContext("2d", { alpha: false });
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+    image.close();
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/webp", 0.82));
+    const output = blob || await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.84));
+    if (!output) throw new Error(`No se pudo optimizar la foto ${file.name}. Prueba con otra imagen.`);
+    const extension = output.type === "image/webp" ? ".webp" : ".jpg";
+    const baseName = file.name.replace(/\.[^.]+$/, "").toLowerCase().replace(/[^a-z0-9._-]/g, "-");
+    return new File([output], `${baseName}${extension}`, { type: output.type, lastModified: Date.now() });
+  }
+
   async function uploadPhotos() {
     const uploaded = [];
-    for (const file of newFiles) {
+    for (let index = 0; index < newFiles.length; index += 1) {
+      status(formStatus, `Optimizando y subiendo fotografía ${index + 1} de ${newFiles.length}…`);
+      const file = await optimizePhoto(newFiles[index]);
       const safeName = file.name.toLowerCase().replace(/[^a-z0-9._-]/g, "-");
       const path = `${crypto.randomUUID()}-${safeName}`;
       const { error } = await client.storage.from(bucketName).upload(path, file, { contentType: file.type, upsert: false });
@@ -180,7 +256,7 @@
     }
     const submit = document.querySelector("#save-property");
     submit.disabled = true;
-    status(formStatus, "Guardando la ficha y las fotografías…");
+    status(formStatus, "Guardando la ficha y optimizando las fotografías…");
     const previous = properties.find((item) => item.id === editingId);
     try {
       const images = await uploadPhotos();
@@ -268,15 +344,33 @@
 
   photoInput.addEventListener("change", () => {
     const selected = Array.from(photoInput.files || []);
-    const invalid = selected.find((file) => file.size > 8 * 1024 * 1024 || !["image/jpeg", "image/png", "image/webp"].includes(file.type));
+    const invalid = selected.find((file) => file.size > 25 * 1024 * 1024 || !["image/jpeg", "image/png", "image/webp"].includes(file.type));
     if (invalid) {
-      status(formStatus, "Cada foto debe ser JPG, PNG o WebP y pesar menos de 8 MB.", "error");
+      status(formStatus, "Cada foto debe ser JPG, PNG o WebP y pesar menos de 25 MB antes de optimizarla.", "error");
       photoInput.value = "";
       return;
     }
     newFiles.push(...selected);
     photoInput.value = "";
     renderPhotos();
+  });
+
+  document.querySelector("#site-content-form").addEventListener("submit", saveSiteContent);
+  document.querySelector("#add-review").addEventListener("click", () => {
+    const name = document.querySelector("#new-review-name").value.trim();
+    const text = document.querySelector("#new-review-text").value.trim();
+    if (!name || !text) {
+      status(document.querySelector("#site-content-status"), "Escribe el nombre y el texto de la reseña antes de añadirla.", "error");
+      return;
+    }
+    reviews.push({ name, text });
+    document.querySelector("#new-review-name").value = "";
+    document.querySelector("#new-review-text").value = "";
+    renderReviews();
+  });
+  document.querySelector("#review-list").addEventListener("click", (event) => {
+    const remove = event.target.closest("[data-remove-review]");
+    if (remove) { reviews.splice(Number(remove.dataset.removeReview), 1); renderReviews(); }
   });
 
   photoPreview.addEventListener("click", (event) => {
