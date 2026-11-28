@@ -105,6 +105,7 @@
           <p class="form-help" id="form-help">Al enviar, se abrirá WhatsApp con tu mensaje preparado.</p>
         </form>
       </section>
+      <section class="custom-page" id="custom-page" hidden></section>
     </main>
 
     <dialog class="property-dialog" id="property-dialog" aria-labelledby="dialog-title">
@@ -112,6 +113,7 @@
       <div class="dialog-layout">
         <div class="dialog-gallery">
           <button class="zoom-image" id="zoom-image" type="button" aria-label="Ampliar fotografía"><img id="dialog-image" src="" alt="" /></button>
+          <video class="dialog-video" id="dialog-video" controls playsinline preload="metadata" hidden></video>
           <button class="gallery-control gallery-prev" id="gallery-prev" type="button" aria-label="Foto anterior">←</button>
           <button class="gallery-control gallery-next" id="gallery-next" type="button" aria-label="Foto siguiente">→</button>
           <span class="gallery-count" id="gallery-count"></span>
@@ -150,9 +152,30 @@
       <span class="lightbox-count" id="lightbox-count"></span>
     </dialog>
 
+    <aside class="assistant-widget" id="assistant-widget">
+      <section class="assistant-panel" id="assistant-panel" aria-labelledby="assistant-title" hidden>
+        <header class="assistant-header">
+          <div><p class="assistant-kicker">INMOBILIARIA LA ALCAYNA</p><h2 id="assistant-title">¿En qué te ayudo?</h2></div>
+          <button class="assistant-close" id="assistant-close" type="button" aria-label="Cerrar asistente">×</button>
+        </header>
+        <div class="assistant-messages" id="assistant-messages" role="log" aria-live="polite" aria-relevant="additions"></div>
+        <div class="assistant-suggestions" id="assistant-suggestions" aria-label="Respuestas rápidas"></div>
+        <form class="assistant-form" id="assistant-form">
+          <label class="visually-hidden" for="assistant-input">Escribe tu consulta</label>
+          <input id="assistant-input" name="consulta" type="text" maxlength="400" autocomplete="off" placeholder="Escribe tu consulta…" />
+          <button type="submit" aria-label="Enviar consulta">Enviar <span aria-hidden="true">→</span></button>
+        </form>
+        <p class="assistant-privacy">Asistente automático. Este chat no se guarda.</p>
+      </section>
+      <button class="assistant-toggle" id="assistant-toggle" type="button" aria-expanded="false" aria-controls="assistant-panel" aria-label="Abrir asistente virtual">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.75A2.75 2.75 0 0 1 6.75 3h10.5A2.75 2.75 0 0 1 20 5.75v7.5A2.75 2.75 0 0 1 17.25 16H10l-4.75 4v-4.56A2.75 2.75 0 0 1 4 13.25z" /></svg>
+        <span>¿Te ayudamos?</span>
+      </button>
+    </aside>
+
     <footer class="site-footer">
       <a class="brand footer-brand" href="#inicio"><span class="brand-mark" aria-hidden="true">A</span><span class="brand-copy"><strong data-brand>Inmobiliaria La Alcayna</strong><small>INMOBILIARIA</small></span></a>
-      <p>Un hogar para cada historia.</p><div class="footer-links"><a href="#propiedades">Propiedades</a><a href="#nosotros">Nosotros</a><a href="#resenas">Reseñas</a><a href="#contacto">Contacto</a></div><small class="copyright">© <span id="year"></span> <span data-brand>Hogar & Horizonte</span>. Todos los derechos reservados.</small>
+      <p>Un hogar para cada historia.</p><div class="footer-links"><a href="#propiedades">Propiedades</a><a href="#nosotros">Nosotros</a><a href="#resenas">Reseñas</a><a href="#contacto">Contacto</a></div><div class="social-links" id="social-links" aria-label="Redes sociales"></div><small class="copyright">© <span id="year"></span> <span data-brand>Hogar & Horizonte</span>. Todos los derechos reservados.</small>
     </footer>
   </body>
 </html>
