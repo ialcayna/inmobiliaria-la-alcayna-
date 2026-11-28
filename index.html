@@ -155,21 +155,37 @@
     <aside class="assistant-widget" id="assistant-widget">
       <section class="assistant-panel" id="assistant-panel" aria-labelledby="assistant-title" hidden>
         <header class="assistant-header">
-          <div><p class="assistant-kicker">INMOBILIARIA LA ALCAYNA</p><h2 id="assistant-title">¿En qué te ayudo?</h2></div>
-          <button class="assistant-close" id="assistant-close" type="button" aria-label="Cerrar asistente">×</button>
+          <div><p class="assistant-kicker">ASISTENTE DE INMOBILIARIA LA ALCAYNA</p><h2 id="assistant-title">Hola, soy Sara</h2></div>
+          <div class="assistant-header-actions">
+            <button class="assistant-voice" id="assistant-voice" type="button" aria-pressed="true" aria-label="Silenciar la voz de Sara"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4zm13.5 3a4.5 4.5 0 0 0-2.5-4.03v8.05A4.5 4.5 0 0 0 17.5 12zm-2.5-9v2.06a7.5 7.5 0 0 1 0 13.88V21a9.5 9.5 0 0 0 0-18z" /></svg><span id="assistant-voice-label">Voz activa</span></button>
+            <button class="assistant-close" id="assistant-close" type="button" aria-label="Cerrar asistente">×</button>
+          </div>
         </header>
         <div class="assistant-messages" id="assistant-messages" role="log" aria-live="polite" aria-relevant="additions"></div>
+        <form class="assistant-search-form" id="assistant-search-form" hidden>
+          <p class="assistant-search-title">Cuéntame qué vivienda buscas</p>
+          <div class="assistant-search-grid">
+            <label>Operación<select id="assistant-search-operation"><option value="venta">Comprar</option><option value="alquiler">Alquilar</option></select></label>
+            <label>Tipo<select id="assistant-search-type"><option value="all">Cualquier tipo</option><option value="piso">Piso</option><option value="casa">Casa / chalet</option><option value="atico">Ático</option><option value="local">Local</option><option value="terreno">Terreno</option></select></label>
+            <label class="assistant-search-wide">Localidad<input id="assistant-search-location" type="text" maxlength="100" placeholder="Ej. La Alcayna" /></label>
+            <label>Precio máximo (€)<input id="assistant-search-price" type="number" min="0" step="1000" placeholder="Sin límite" /></label>
+            <label>Dormitorios<input id="assistant-search-bedrooms" type="number" min="0" max="20" step="1" placeholder="Cualquiera" /></label>
+            <label class="assistant-garden"><input id="assistant-search-garden" type="checkbox" /> Jardín</label>
+            <label class="assistant-search-wide">¿Qué más necesitas?<input id="assistant-search-features" type="text" maxlength="160" placeholder="Piscina, terraza, garaje…" /></label>
+          </div>
+          <button class="assistant-search-submit" type="submit">Buscar viviendas <span aria-hidden="true">→</span></button>
+        </form>
         <div class="assistant-suggestions" id="assistant-suggestions" aria-label="Respuestas rápidas"></div>
         <form class="assistant-form" id="assistant-form">
           <label class="visually-hidden" for="assistant-input">Escribe tu consulta</label>
           <input id="assistant-input" name="consulta" type="text" maxlength="400" autocomplete="off" placeholder="Escribe tu consulta…" />
           <button type="submit" aria-label="Enviar consulta">Enviar <span aria-hidden="true">→</span></button>
         </form>
-        <p class="assistant-privacy">Asistente automático. Este chat no se guarda.</p>
+        <p class="assistant-privacy">Sara es un asistente automático. El chat no se guarda; no compartas DNI ni documentos aquí.</p>
       </section>
-      <button class="assistant-toggle" id="assistant-toggle" type="button" aria-expanded="false" aria-controls="assistant-panel" aria-label="Abrir asistente virtual">
+      <button class="assistant-toggle" id="assistant-toggle" type="button" aria-expanded="false" aria-controls="assistant-panel" aria-label="Hablar con Sara">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.75A2.75 2.75 0 0 1 6.75 3h10.5A2.75 2.75 0 0 1 20 5.75v7.5A2.75 2.75 0 0 1 17.25 16H10l-4.75 4v-4.56A2.75 2.75 0 0 1 4 13.25z" /></svg>
-        <span>¿Te ayudamos?</span>
+        <span>Habla con Sara</span>
       </button>
     </aside>
 

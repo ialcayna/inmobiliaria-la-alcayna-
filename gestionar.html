@@ -59,7 +59,29 @@
               <label>Teléfono<input id="contact-phone" type="tel" /></label>
               <label>WhatsApp con prefijo de país<input id="contact-whatsapp" type="tel" placeholder="Ej. 34600000000" /></label>
               <label class="wide">Correo de contacto<input id="contact-email" type="email" /></label>
+                <label>Facebook (enlace del perfil)<input id="social-facebook" type="url" placeholder="https://facebook.com/tuinmobiliaria" /></label>
+                <label>Instagram (enlace del perfil)<input id="social-instagram" type="url" placeholder="https://instagram.com/tuinmobiliaria" /></label>
+                <label>TikTok (enlace del perfil)<input id="social-tiktok" type="url" placeholder="https://tiktok.com/@tuinmobiliaria" /></label>
+                <label>LinkedIn (enlace del perfil)<input id="social-linkedin" type="url" placeholder="https://linkedin.com/company/tuinmobiliaria" /></label>
             </div>
+              <section class="manager-content-block" aria-labelledby="cover-editor-title">
+                <h3 id="cover-editor-title">Fotos de portada</h3>
+                <p class="editor-help">Añade hasta tres imágenes. Se mostrarán en la portada y podrás cambiarlas cuando quieras.</p>
+                <label class="wide photo-field">Subir fotos de portada<input id="hero-photo-input" type="file" accept="image/jpeg,image/png,image/webp" multiple /><small>JPG, PNG o WebP, hasta 25 MB cada una.</small></label>
+                <div class="photo-preview" id="hero-photo-preview"></div>
+              </section>
+              <section class="manager-content-block" aria-labelledby="pages-editor-title">
+                <h3 id="pages-editor-title">Páginas adicionales</h3>
+                <p class="editor-help">Crea páginas como “Servicios”, “La zona” o “Contacto”. Se enlazarán automáticamente en el menú. Separa los párrafos con una línea en blanco.</p>
+                <div class="form-grid page-editor-fields">
+                  <label>Título de la página<input id="custom-page-title" type="text" placeholder="Ej. Servicios" /></label>
+                  <label>Dirección corta<input id="custom-page-slug" type="text" placeholder="Se completa desde el título" /></label>
+                  <label class="wide">Foto de cabecera (opcional)<input id="custom-page-image" type="url" placeholder="https://..." /></label>
+                  <label class="wide">Contenido<textarea id="custom-page-body" rows="5" placeholder="Escribe el contenido de la página"></textarea></label>
+                </div>
+                <div class="form-actions"><button class="button button-quiet" id="save-custom-page" type="button">Añadir página</button><button class="button button-quiet" id="cancel-custom-page" type="button" hidden>Cancelar edición</button></div>
+                <div class="custom-page-list" id="custom-page-list"></div>
+              </section>
             <div class="review-editor">
               <h3>Reseñas de clientes</h3>
               <div id="review-list"></div>
@@ -68,6 +90,25 @@
             <div class="form-actions"><button class="button button-dark" type="submit" id="save-site-content">Guardar cambios <span>↗</span></button></div>
             <p class="manager-status form-status" id="site-content-status" aria-live="polite"></p>
           </form>
+        </section>
+        <section class="editor-panel owner-editor" aria-labelledby="owners-heading">
+          <div class="subheading"><div><p class="eyebrow"><span></span> Información privada</p><h2 id="owners-heading">Propietarios</h2></div><span class="count-pill" id="owner-count">0</span></div>
+          <p class="editor-help">Estos datos solo se muestran en este panel tras iniciar sesión. No aparecen en la web pública. No guardes aquí documentos ni información que no necesites.</p>
+          <form id="owner-form">
+            <input id="owner-id" type="hidden" />
+            <div class="form-grid">
+              <label class="wide">Nombre y apellidos<input id="owner-name" type="text" autocomplete="off" maxlength="160" required /></label>
+              <label>Teléfono<input id="owner-phone" type="tel" autocomplete="off" maxlength="40" /></label>
+              <label>Correo electrónico<input id="owner-email" type="email" autocomplete="off" maxlength="254" /></label>
+              <label>DNI / NIE<input id="owner-dni" type="text" autocomplete="off" spellcheck="false" maxlength="32" /></label>
+              <label class="wide">Dirección<textarea id="owner-address" rows="2" autocomplete="off" maxlength="400"></textarea></label>
+            </div>
+            <div class="form-actions"><button class="button button-dark" type="submit" id="save-owner">Guardar propietario</button><button class="button button-quiet" type="button" id="cancel-owner-edit" hidden>Cancelar edición</button></div>
+            <p class="manager-status" id="owners-status" aria-live="polite"></p>
+          </form>
+          <div class="owner-list-tools"><input id="owner-search" type="search" placeholder="Buscar por nombre o zona" aria-label="Buscar propietarios" /></div>
+          <div class="owner-list" id="owner-list"></div>
+          <div class="empty-list" id="owner-empty" hidden><span>⌂</span><p>No hay propietarios guardados.</p></div>
         </section>
         <div class="manager-columns">
           <section class="editor-panel">
@@ -89,7 +130,7 @@
                 <label>Plazas de parking<input id="property-parking" type="number" min="0" /></label>
                 <label class="wide">Descripción<textarea id="property-description" rows="4" placeholder="Describe la vivienda y lo que la hace especial."></textarea></label>
                 <label class="wide">Características, una por línea<textarea id="property-features" rows="4" placeholder="Piscina&#10;Jardín&#10;Aire acondicionado&#10;Reformado"></textarea></label>
-                <label class="wide photo-field">Fotografías <span class="optional">Puedes añadir varias</span><input id="property-photos" type="file" accept="image/jpeg,image/png,image/webp" multiple /><small>JPG, PNG o WebP. Se reducen y optimizan automáticamente al subirlas.</small></label>
+                <label class="wide photo-field">Fotos y vídeos <span class="optional">Puedes añadir varios</span><input id="property-photos" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime,video/x-m4v" multiple /><small>Las fotos se reducen. Los vídeos se comprimen en este navegador y se ajustan para verse bien en móvil y ordenador.</small></label>
               </div>
               <div class="photo-preview" id="photo-preview"></div>
               <label class="publish-toggle"><input id="property-published" type="checkbox" checked /> Publicar esta propiedad en la web</label>

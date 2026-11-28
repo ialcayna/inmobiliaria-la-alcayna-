@@ -593,13 +593,41 @@
   const assistantSuggestions = document.querySelector("#assistant-suggestions");
   const assistantForm = document.querySelector("#assistant-form");
   const assistantInput = document.querySelector("#assistant-input");
+  const assistantVoiceButton = document.querySelector("#assistant-voice");
+  const assistantVoiceLabel = document.querySelector("#assistant-voice-label");
+  const assistantSearchForm = document.querySelector("#assistant-search-form");
   let assistantStarted = false;
   let assistantSearching = false;
+  let assistantSaleMode = false;
   let assistantOperation = "all";
   let assistantLeadSummary = "";
+  let assistantVoiceEnabled = Boolean(window.speechSynthesis && window.SpeechSynthesisUtterance);
+
+  if (!assistantVoiceEnabled) {
+    assistantVoiceButton.disabled = true;
+    assistantVoiceButton.setAttribute("aria-pressed", "false");
+    assistantVoiceButton.setAttribute("aria-label", "La voz no está disponible en este navegador");
+    assistantVoiceLabel.textContent = "Sin voz";
+  }
 
   const normalizeAssistantText = (value) => String(value ?? "").toLocaleLowerCase("es")
     .normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[¡!¿?.,;:]/g, " ").replace(/\s+/g, " ").trim();
+
+  const speakAssistant = (text) => {
+    if (!assistantVoiceEnabled || !window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const utterance = new window.SpeechSynthesisUtterance(text);
+    const spanishVoices = window.speechSynthesis.getVoices().filter((voice) => /^es(?:-|$)/i.test(voice.lang));
+    const preferredVoice = spanishVoices.find((voice) => /elvira|helena|monica|mónica|lucia|lucía|sara|female|mujer/i.test(voice.name))
+      || spanishVoices.find((voice) => /^es-es/i.test(voice.lang))
+      || spanishVoices[0];
+    if (preferredVoice) utterance.voice = preferredVoice;
+    utterance.lang = "es-ES";
+    utterance.rate = 0.93;
+    utterance.pitch = 1.08;
+    utterance.volume = 0.92;
+    window.speechSynthesis.speak(utterance);
+  };
 
   const appendAssistantMessage = (text, role = "bot") => {
     const message = document.createElement("div");
@@ -607,6 +635,7 @@
     message.textContent = text;
     assistantMessages.appendChild(message);
     assistantMessages.scrollTop = assistantMessages.scrollHeight;
+    if (role === "bot") speakAssistant(text);
     return message;
   };
 
@@ -633,40 +662,50 @@
     if (isOpen) {
       if (!assistantStarted) {
         assistantStarted = true;
-        appendAssistantMessage("¡Hola! Soy el asistente virtual de Inmobiliaria La Alcayna. Puedo ayudarte a buscar vivienda y orientarte con consultas frecuentes.");
+        appendAssistantMessage("Hola, soy Sara, la asistente virtual de Inmobiliaria La Alcayna. Estoy aquí para ayudarte a buscar casa o responder tus dudas con cercanía y claridad.");
         setAssistantSuggestions([
-          { label: "Buscar vivienda", action: () => startAssistantSearch() },
-          { label: "Quiero vender", action: () => startAssistantSale() },
+          { label: "Busco casa", action: () => startAssistantSearch() },
+          { label: "Vender mi casa", action: () => startAssistantSale() },
+          { label: "Resolver una duda", action: () => startAssistantQuestions() },
           { label: "Hablar con el equipo", action: () => contactAssistantTeam() }
         ]);
       }
       assistantInput.focus();
-    } else assistantToggle.focus();
+    } else {
+      if (window.speechSynthesis) window.speechSynthesis.cancel();
+      assistantToggle.focus();
+    }
   };
 
   const assistantSearchPrompt = () => {
-    appendAssistantMessage("¿Buscas comprar o alquilar? Después puedes decirme la zona, el presupuesto y cuántas habitaciones necesitas.");
+    assistantSearchForm.hidden = false;
+    appendAssistantMessage("Completa la ficha con la zona, el precio, los dormitorios y lo que más valoras. También puedes preguntarme tus dudas por escrito.");
     setAssistantSuggestions([
       { label: "Comprar", action: () => chooseAssistantOperation("venta") },
       { label: "Alquilar", action: () => chooseAssistantOperation("alquiler") },
-      { label: "Ver todas", action: () => runAssistantSearch("ver todas") }
+      { label: "Ver anuncios", action: () => runAssistantStructuredSearch() }
     ]);
   };
 
   function startAssistantSearch() {
     assistantSearching = true;
-    assistantOperation = "all";
+    assistantSaleMode = false;
+    assistantSearchForm.hidden = false;
+    assistantOperation = document.querySelector("#assistant-search-operation").value;
     assistantLeadSummary = "Estoy buscando una vivienda";
     assistantSearchPrompt();
   }
 
   function chooseAssistantOperation(operation) {
     assistantSearching = true;
+    assistantSaleMode = false;
+    assistantSearchForm.hidden = false;
     assistantOperation = operation;
+    document.querySelector("#assistant-search-operation").value = operation;
     assistantLeadSummary = operation === "alquiler" ? "Busco una vivienda de alquiler" : "Busco una vivienda para comprar";
-    appendAssistantMessage(`Perfecto. ¿Qué zona, presupuesto aproximado o características buscas? Puedes escribirlo en una frase o ver las opciones publicadas${operation === "alquiler" ? " en alquiler" : " en venta"}.`);
+    appendAssistantMessage(`Perfecto. He marcado ${operation === "alquiler" ? "alquilar" : "comprar"}. Completa la ficha para ver opciones${operation === "alquiler" ? " en alquiler" : " en venta"}, o pregúntame algo por escrito.`);
     setAssistantSuggestions([
-      { label: "Ver todas", action: () => runAssistantSearch("ver todas") },
+      { label: "Ver anuncios", action: () => runAssistantStructuredSearch() },
       { label: "Hablar con el equipo", action: () => contactAssistantTeam() }
     ]);
   }
@@ -692,22 +731,27 @@
     const price = parseAssistantPrice(text);
     const roomsMatch = text.match(/\b(\d+)\s*(?:habitaciones?|dormitorios?|hab\.?|dorm\.?|cuartos?)\b/);
     const bedrooms = roomsMatch ? Number(roomsMatch[1]) : null;
+    const garden = /\b(jardin|jardines)\b/.test(text);
+    const commonFeatures = ["piscina", "terraza", "garaje", "parking", "ascensor", "balcon", "trastero", "patio"];
+    const features = commonFeatures.filter((feature) => text.includes(feature)).join(" ");
     let location = text
       .replace(/(?:hasta|maximo|presupuesto(?: de)?|menos de|tope(?: de)?)\s*(?:de\s*)?(?:€\s*)?\d[\d., ]*\s*k?/g, " ")
       .replace(/\b\d+\s*(?:habitaciones?|dormitorios?|hab\.?|dorm\.?|cuartos?)\b/g, " ")
-      .replace(/\b(busco|buscar|buscando|quiero|necesito|necesitamos|estoy|una|un|la|el|los|las|de|para|por|en|cerca|zona|con|que|me|interesa|interesan|vivienda|viviendas|inmueble|inmuebles|propiedad|propiedades|casa|chalet|adosado|unifamiliar|piso|apartamento|apartamentos|atico|local|locales|comercial|terreno|solar|parcela|comprar|compra|compro|venta|vender|alquilar|alquiler|alquilo|ver|todas|todos|opciones|publicadas|publicados|euros|euro|habitacion|habitaciones|dormitorio|dormitorios|hab|dorm)\b/g, " ")
+      .replace(/\b(busco|buscar|buscando|quiero|necesito|necesitamos|estoy|una|un|la|el|los|las|de|para|por|en|cerca|zona|con|que|me|interesa|interesan|vivienda|viviendas|inmueble|inmuebles|propiedad|propiedades|casa|chalet|adosado|unifamiliar|piso|apartamento|apartamentos|atico|local|locales|comercial|terreno|solar|parcela|comprar|compra|compro|venta|vender|alquilar|alquiler|alquilo|ver|todas|todos|opciones|publicadas|publicados|euros|euro|habitacion|habitaciones|dormitorio|dormitorios|hab|dorm|jardin|jardines|piscina|terrazas?|garaje|parking|ascensor|balcon|trastero|patio)\b/g, " ")
       .replace(/\b\d+\b/g, " ").replace(/\s+/g, " ").trim();
-    return { operation, type, price, bedrooms, location };
+    return { operation, type, price, bedrooms, location, garden, features };
   };
 
   const summarizeAssistantCriteria = (criteria) => {
     const parts = [];
     if (criteria.operation === "venta") parts.push("para comprar");
     if (criteria.operation === "alquiler") parts.push("de alquiler");
-    if (criteria.type) parts.push(typeNames[criteria.type]?.toLowerCase() || "vivienda");
+    if (criteria.type && criteria.type !== "all") parts.push(typeNames[criteria.type]?.toLowerCase() || "vivienda");
     if (criteria.location) parts.push(`en ${criteria.location}`);
     if (criteria.price) parts.push(`hasta ${new Intl.NumberFormat("es-ES").format(criteria.price)} €${criteria.operation === "alquiler" ? "/mes" : ""}`);
     if (criteria.bedrooms) parts.push(`con ${criteria.bedrooms} habitaciones`);
+    if (criteria.garden) parts.push("con jardín");
+    if (criteria.features) parts.push(`con ${criteria.features}`);
     return parts.length ? `Busco ${parts.join(" ")}` : "Estoy buscando una vivienda";
   };
 
@@ -731,10 +775,11 @@
     assistantMessages.scrollTop = assistantMessages.scrollHeight;
   };
 
-  function runAssistantSearch(rawText, operationHint = assistantOperation) {
-    const criteria = assistantSearchCriteria(rawText, operationHint);
+  function runAssistantSearch(rawText, operationHint = assistantOperation, suppliedCriteria = null) {
+    const criteria = suppliedCriteria || assistantSearchCriteria(rawText, operationHint);
     if (criteria.operation !== "all") assistantOperation = criteria.operation;
     assistantSearching = false;
+    assistantSaleMode = false;
     assistantLeadSummary = summarizeAssistantCriteria(criteria);
     if (!propertyDataLoaded || propertyLoadError) {
       appendAssistantMessage(propertyLoadError
@@ -747,13 +792,16 @@
     }
     const matches = properties.filter((property) => {
       if (criteria.operation !== "all" && property.operation !== criteria.operation) return false;
-      if (criteria.type && property.type !== criteria.type) return false;
+      if (criteria.type && criteria.type !== "all" && property.type !== criteria.type) return false;
       if (criteria.price && Number(property.price) > criteria.price) return false;
       if (criteria.bedrooms && Number(property.bedrooms) < criteria.bedrooms) return false;
       if (criteria.location) {
         const searchable = normalizeAssistantText(`${property.title} ${property.location} ${property.description || ""}`);
         if (!searchable.includes(criteria.location)) return false;
       }
+      const featureText = normalizeAssistantText(`${Array.isArray(property.features) ? property.features.join(" ") : property.features || ""} ${property.description || ""} ${property.title || ""}`);
+      if (criteria.garden && !/\b(jardin|patio)\b/.test(featureText)) return false;
+      if (criteria.features && criteria.features.split(/\s+/).filter(Boolean).some((feature) => !featureText.includes(feature))) return false;
       return true;
     });
 
@@ -770,6 +818,21 @@
         { label: "Hablar con el equipo", action: () => contactAssistantTeam() }
       ]);
     }
+  }
+
+  function runAssistantStructuredSearch() {
+    assistantSearchForm.hidden = false;
+    const criteria = {
+      operation: document.querySelector("#assistant-search-operation").value,
+      type: document.querySelector("#assistant-search-type").value,
+      location: normalizeAssistantText(document.querySelector("#assistant-search-location").value),
+      price: Number(document.querySelector("#assistant-search-price").value) || null,
+      bedrooms: Number(document.querySelector("#assistant-search-bedrooms").value) || null,
+      garden: document.querySelector("#assistant-search-garden").checked,
+      features: normalizeAssistantText(document.querySelector("#assistant-search-features").value)
+    };
+    assistantOperation = criteria.operation;
+    runAssistantSearch("", criteria.operation, criteria);
   }
 
   function contactAssistantTeam() {
@@ -790,11 +853,102 @@
     }
   }
 
-  function startAssistantSale() {
+  const assistantTypeNames = { piso: "piso", casa: "casa o chalet", atico: "ático", local: "local", terreno: "terreno" };
+  let assistantSaleType = "";
+  let assistantSaleLocation = "";
+
+  function selectAssistantSaleType(type) {
+    assistantSaleType = type;
+    if (assistantSaleLocation) {
+      collectAssistantSaleDetails(assistantSaleLocation);
+      return;
+    }
+    assistantLeadSummary = `Quiero vender ${assistantTypeNames[type] || "una propiedad"}`;
+    appendAssistantMessage("Gracias. ¿En qué localidad está? No compartas DNI ni documentos por este chat.");
+    setAssistantSuggestions([{ label: "Hablar con el equipo", action: () => contactAssistantTeam() }]);
+  }
+
+  function collectAssistantSaleDetails(rawText) {
+    const text = normalizeAssistantText(rawText);
+    const type = /\b(atico|penthouse)\b/.test(text) ? "atico"
+      : /\b(casa|chalet|adosado|vivienda unifamiliar)\b/.test(text) ? "casa"
+        : /\b(piso|apartamento)\b/.test(text) ? "piso"
+          : /\b(local|comercial)\b/.test(text) ? "local"
+            : /\b(terreno|solar|parcela)\b/.test(text) ? "terreno" : "";
+    if (type) assistantSaleType = type;
+    const locationMatch = text.match(/\b(?:en|localidad de|zona de)\s+(.+)$/);
+    let location = locationMatch ? locationMatch[1] : "";
+    if (!location && assistantSaleType && !type) location = rawText.trim();
+    if (!location && assistantSaleType && type) {
+      location = text.replace(/\b(quiero|queremos|vender|vendo|vendemos|poner|publicar|mi|mis|propiedad|vivienda|casa|chalet|adosado|piso|apartamento|atico|local|comercial|terreno|solar|parcela|esta|está|situada|situado|localidad|zona|de|en|la|el|un|una|y|por|favor)\b/g, " ")
+        .replace(/\s+/g, " ").trim();
+      if (location === type) location = "";
+    }
+    if (location) assistantSaleLocation = location;
+    if (!assistantSaleType) {
+      appendAssistantMessage("¿Qué tipo de inmueble quieres vender?");
+      setAssistantSuggestions([
+        { label: "Piso", action: () => selectAssistantSaleType("piso") },
+        { label: "Casa o chalet", action: () => selectAssistantSaleType("casa") },
+        { label: "Local", action: () => selectAssistantSaleType("local") },
+        { label: "Terreno", action: () => selectAssistantSaleType("terreno") }
+      ]);
+      return;
+    }
+    if (!assistantSaleLocation) {
+      assistantLeadSummary = `Quiero vender ${assistantTypeNames[assistantSaleType]}`;
+      appendAssistantMessage("¿En qué localidad está la vivienda?");
+      setAssistantSuggestions([{ label: "Hablar con el equipo", action: () => contactAssistantTeam() }]);
+      return;
+    }
+    assistantLeadSummary = `Quiero vender ${assistantTypeNames[assistantSaleType]} en ${assistantSaleLocation}`;
+    assistantSaleMode = false;
+    appendAssistantMessage(`Gracias. He anotado que quieres vender ${assistantTypeNames[assistantSaleType]} en ${assistantSaleLocation}. El equipo puede orientarte sobre los siguientes pasos.`);
+    setAssistantSuggestions([{ label: "Enviar consulta al equipo", action: () => contactAssistantTeam() }, { label: "Buscar una vivienda", action: () => startAssistantSearch() }]);
+  }
+
+  function startAssistantSale(initialDetails = "") {
     assistantSearching = false;
-    assistantLeadSummary = "Quiero información para vender o alquilar una propiedad";
-    appendAssistantMessage("Claro. Para orientarte, el equipo necesitará conocer la zona y el tipo de propiedad. Si quieres, puedes enviarles ahora la consulta y concretar esos detalles con ellos.");
-    setAssistantSuggestions([{ label: "Consultar al equipo", action: () => contactAssistantTeam() }, { label: "Buscar vivienda", action: () => startAssistantSearch() }]);
+    assistantSaleMode = true;
+    assistantSearchForm.hidden = true;
+    assistantSaleType = "";
+    assistantSaleLocation = "";
+    assistantLeadSummary = "Quiero información para vender una propiedad";
+    if (initialDetails) {
+      collectAssistantSaleDetails(initialDetails);
+      return;
+    }
+    appendAssistantMessage("Encantada, soy Sara. Te acompaño con la venta de tu vivienda. Dime qué tipo de inmueble es y en qué localidad está. No compartas DNI ni documentos por este chat.");
+    setAssistantSuggestions([
+      { label: "Piso", action: () => selectAssistantSaleType("piso") },
+      { label: "Casa o chalet", action: () => selectAssistantSaleType("casa") },
+      { label: "Hablar con el equipo", action: () => contactAssistantTeam() }
+    ]);
+  }
+
+  function startAssistantQuestions() {
+    assistantSearching = false;
+    assistantSaleMode = false;
+    assistantSearchForm.hidden = true;
+    appendAssistantMessage("Claro, soy Sara. Pregúntame por una vivienda, las visitas o cualquier duda. Si el dato depende de la operación, te lo confirmaré con el equipo.");
+    setAssistantSuggestions([
+      { label: "Disponibilidad y visitas", action: () => {
+        assistantLeadSummary = "Quiero confirmar disponibilidad y concertar una visita";
+        appendAssistantMessage("El equipo debe confirmar si la vivienda sigue disponible y acordar las visitas. Si me indicas el anuncio, incluiré la referencia en la consulta.");
+        setAssistantSuggestions([{ label: "Consultar al equipo", action: () => contactAssistantTeam() }]);
+      } },
+      { label: "Honorarios y gastos", action: () => {
+        assistantLeadSummary = "Tengo una consulta sobre honorarios y gastos";
+        appendAssistantMessage("Los importes pueden variar según la operación; el equipo te confirmará el detalle antes de avanzar.");
+        setAssistantSuggestions([{ label: "Consultar al equipo", action: () => contactAssistantTeam() }]);
+      } },
+      { label: "Financiación", action: () => {
+        assistantLeadSummary = "Tengo una consulta sobre financiación";
+        appendAssistantMessage("Sara no da condiciones de crédito. El equipo puede orientarte sobre el proceso y resolver tu consulta.");
+        setAssistantSuggestions([{ label: "Consultar al equipo", action: () => contactAssistantTeam() }]);
+      } },
+      { label: "Hablar con el equipo", action: () => contactAssistantTeam() }
+    ]);
   }
 
   const assistantHandleInput = (rawText) => {
@@ -806,8 +960,9 @@
     if (/\b(hola|buenas|buenos dias|buenas tardes|buenas noches|hey)\b/.test(text) && text.split(" ").length < 6) {
       appendAssistantMessage("¡Hola! ¿Qué necesitas hoy?");
       setAssistantSuggestions([
-        { label: "Buscar vivienda", action: () => startAssistantSearch() },
-        { label: "Quiero vender", action: () => startAssistantSale() },
+        { label: "Busco casa", action: () => startAssistantSearch() },
+        { label: "Vender mi casa", action: () => startAssistantSale() },
+        { label: "Resolver una duda", action: () => startAssistantQuestions() },
         { label: "Hablar con el equipo", action: () => contactAssistantTeam() }
       ]);
       return;
@@ -815,8 +970,17 @@
 
     if (/\b(comision|comisiones|honorarios|impuestos|gastos|arras|hipoteca|financiacion|financiar|documentacion|documentos|contrato|legal|notaria)\b/.test(text)) {
       assistantSearching = false;
-      appendAssistantMessage("Prefiero no darte una cifra o condición que pueda variar. El equipo puede confirmarte los detalles de esa operación.");
+      assistantLeadSummary = rawText.trim();
+      appendAssistantMessage(/\b(documentacion|documentos)\b/.test(text)
+        ? "Para proteger tus datos, no compartas documentación privada en este chat. El equipo te indicará cómo facilitarla si hace falta."
+        : "Prefiero no darte una cifra o condición que pueda variar. El equipo puede confirmarte los detalles de esa operación.");
       setAssistantSuggestions([{ label: "Consultar al equipo", action: () => contactAssistantTeam() }]);
+      return;
+    }
+
+    if (/\b(dni|nie|pasaporte|identificacion)\b/.test(text)) {
+      appendAssistantMessage("Por seguridad, no escribas tu DNI, NIE ni otros datos de identificación aquí. Este chat no los necesita.");
+      setAssistantSuggestions([{ label: "Continuar sin datos privados", action: () => startAssistantSale() }, { label: "Hablar con el equipo", action: () => contactAssistantTeam() }]);
       return;
     }
 
@@ -838,8 +1002,8 @@
       return;
     }
 
-    if (/\b(vender|venderla|venderlo|venta de mi|alquilar mi|alquiler de mi|publicar mi|poner en venta|valorar mi)\b/.test(text)) {
-      startAssistantSale();
+    if (/\b(vender|vendo|vendemos|venderla|venderlo|venta de mi|alquilar mi|alquiler de mi|publicar mi|poner en venta|valorar mi)\b/.test(text)) {
+      startAssistantSale(rawText);
       return;
     }
 
@@ -847,6 +1011,16 @@
       assistantSearching = false;
       assistantLeadSummary = rawText.trim();
       contactAssistantTeam();
+      return;
+    }
+
+    if (assistantSaleMode) {
+      collectAssistantSaleDetails(rawText);
+      return;
+    }
+
+    if (/\b(duda|dudas|pregunta|preguntas|ayuda|informacion)\b/.test(text)) {
+      startAssistantQuestions();
       return;
     }
 
@@ -863,16 +1037,30 @@
       return;
     }
 
-    appendAssistantMessage("Puedo ayudarte a buscar una propiedad, consultar disponibilidad o pasar tu consulta al equipo. ¿Qué te gustaría hacer?");
+    appendAssistantMessage("Puedo ayudarte a buscar una vivienda, resolver una duda o acompañarte en la venta de tu casa. ¿Qué te gustaría hacer?");
     setAssistantSuggestions([
-      { label: "Buscar vivienda", action: () => startAssistantSearch() },
-      { label: "Quiero vender", action: () => startAssistantSale() },
+      { label: "Busco casa", action: () => startAssistantSearch() },
+      { label: "Vender mi casa", action: () => startAssistantSale() },
+      { label: "Resolver una duda", action: () => startAssistantQuestions() },
       { label: "Hablar con el equipo", action: () => contactAssistantTeam() }
     ]);
   };
 
   assistantToggle.addEventListener("click", () => openAssistant(assistantPanel.hidden));
   assistantClose.addEventListener("click", () => openAssistant(false));
+  assistantVoiceButton.addEventListener("click", () => {
+    if (!window.speechSynthesis) return;
+    assistantVoiceEnabled = !assistantVoiceEnabled;
+    assistantVoiceButton.setAttribute("aria-pressed", String(assistantVoiceEnabled));
+    assistantVoiceButton.setAttribute("aria-label", assistantVoiceEnabled ? "Silenciar la voz de Sara" : "Activar la voz de Sara");
+    assistantVoiceLabel.textContent = assistantVoiceEnabled ? "Voz activa" : "Voz silenciada";
+    if (assistantVoiceEnabled) speakAssistant("Hola, soy Sara. ¿En qué puedo ayudarte?");
+    else window.speechSynthesis.cancel();
+  });
+  assistantSearchForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    runAssistantStructuredSearch();
+  });
   assistantForm.addEventListener("submit", (event) => {
     event.preventDefault();
     const value = assistantInput.value;
@@ -881,6 +1069,11 @@
   });
   assistantInput.addEventListener("keydown", (event) => {
     if (event.key === "Escape") openAssistant(false);
+  });
+  document.querySelector(".nav-cta").addEventListener("click", (event) => {
+    event.preventDefault();
+    openAssistant(true);
+    startAssistantSale();
   });
 
   renderProperties();
